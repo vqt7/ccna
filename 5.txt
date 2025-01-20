@@ -1,0 +1,183 @@
+Lab – Implement Inter-VLAN Routing
+Background / Scenario
+Modern switches use VLANs to improve network performance and enhance security by segregating broadcast domains. Inter-VLAN routing allows communication between VLANs using a Layer 3 device, such as a router configured for "Router-on-a-Stick" with VLAN trunks.
+
+Required Resources
+1 Router: Cisco 4221 with Cisco IOS XE Release 16.9.4 universal image or comparable
+2 Switches: Cisco 2960 with Cisco IOS Release 15.2(2) lanbasek9 image or comparable
+2 PCs: Windows with a terminal emulation program (e.g., Tera Term)
+Cables: Console cables and Ethernet cables as per topology diagram
+Part 1: Build the Network and Configure Basic Device Settings
+Step 1: Cable the Network
+Device: Physical/Virtual Lab Environment
+
+Connect devices as shown in the topology diagram. Use appropriate console and Ethernet cables.
+Step 2: Configure Basic Settings for the Router
+Commands on Router R1:
+bash
+Copy
+Edit
+# Enable privileged EXEC mode
+router> enable
+
+# Enter configuration mode
+router# config terminal
+
+# Assign device name
+router(config)# hostname R1
+
+# Disable DNS lookup
+R1(config)# no ip domain-lookup
+
+# Set privileged EXEC password
+R1(config)# enable secret class
+
+# Configure console password
+R1(config)# line console 0
+R1(config-line)# password cisco
+R1(config-line)# login
+
+# Configure VTY password
+R1(config)# line vty 0 4
+R1(config-line)# password cisco
+R1(config-line)# login
+
+# Encrypt plaintext passwords
+R1(config)# service password-encryption
+
+# Set banner
+R1(config)# banner motd $ Authorized Users Only! $
+
+# Save configuration
+R1# copy running-config startup-config
+
+# Set clock
+R1# clock set 15:30:00 27 Aug 2019
+Step 3: Configure Basic Settings for Each Switch
+Commands on Switch S1 and Switch S2:
+bash
+Copy
+Edit
+# Assign device name
+switch(config)# hostname S1  # Replace S1 with S2 for the second switch
+
+# Disable DNS lookup
+S1(config)# no ip domain-lookup
+
+# Set privileged EXEC password
+S1(config)# enable secret class
+
+# Configure console password
+S1(config)# line console 0
+S1(config-line)# password cisco
+S1(config-line)# login
+
+# Configure VTY password
+S1(config)# line vty 0 4
+S1(config-line)# password cisco
+S1(config-line)# login
+
+# Encrypt plaintext passwords
+S1(config)# service password-encryption
+
+# Set banner
+S1(config)# banner motd $ Authorized Users Only! $
+
+# Save configuration
+S1# copy running-config startup-config
+
+# Set clock
+S1# clock set 15:30:00 27 Aug 2019
+Step 4: Configure PC Hosts
+Device: PC Hosts
+
+Assign IP addresses as per the Addressing Table.
+Part 2: Create VLANs and Assign Switch Ports
+Step 1: Create VLANs on Both Switches
+Commands on Switch S1 and Switch S2:
+bash
+Copy
+Edit
+# Create VLANs
+S1(config)# vlan 10
+S1(config-vlan)# name Management
+S1(config)# vlan 20
+S1(config-vlan)# name Sales
+S1(config)# vlan 30
+S1(config-vlan)# name Operations
+S1(config)# vlan 999
+S1(config-vlan)# name Parking_Lot
+S1(config)# vlan 1000
+S1(config-vlan)# name Native
+S1(config)# exit
+
+# Repeat the same steps on S2
+Step 2: Assign VLANs and Configure Management Interface
+Commands on Switch S1:
+bash
+Copy
+Edit
+# Configure Management Interface
+S1(config)# interface vlan 10
+S1(config-if)# ip address 192.168.10.11 255.255.255.0
+S1(config-if)# no shutdown
+S1(config)# ip default-gateway 192.168.10.1
+
+# Assign unused ports to VLAN 999 and deactivate
+S1(config)# interface range f0/2 - 4 , f0/7 - 24 , g0/1 - 2
+S1(config-if-range)# switchport mode access
+S1(config-if-range)# switchport access vlan 999
+S1(config-if-range)# shutdown
+
+# Assign VLANs to ports
+S1(config)# interface f0/6
+S1(config-if)# switchport mode access
+S1(config-if)# switchport access vlan 20
+Commands on Switch S2:
+bash
+Copy
+Edit
+# Configure Management Interface
+S2(config)# interface vlan 10
+S2(config-if)# ip address 192.168.10.12 255.255.255.0
+S2(config-if)# no shutdown
+S2(config)# ip default-gateway 192.168.10.1
+
+# Assign unused ports to VLAN 999 and deactivate
+S2(config)# interface range f0/2 - 17 , f0/19 - 24 , g0/1 - 2
+S2(config-if-range)# switchport mode access
+S2(config-if-range)# switchport access vlan 999
+S2(config-if-range)# shutdown
+
+# Assign VLANs to ports
+S2(config)# interface f0/18
+S2(config-if)# switchport mode access
+S2(config-if)# switchport access vlan 30
+Part 3: Configure an 802.1Q Trunk Between the Switches
+Step 1: Configure Trunk on F0/1
+Commands on Switch S1 and Switch S2:
+bash
+Copy
+Edit
+# Configure trunking
+S1(config)# interface f0/1
+S1(config-if)# switchport mode trunk
+S1(config-if)# switchport trunk native vlan 1000
+S1(config-if)# switchport trunk allowed vlan 10,20,30,1000
+
+# Repeat the same steps on S2
+Verification
+Commands:
+Show VLANs:
+
+bash
+Copy
+Edit
+S1# show vlan brief
+S2# show vlan brief
+Show Trunk Configuration:
+
+bash
+Copy
+Edit
+S1# show interfaces trunk

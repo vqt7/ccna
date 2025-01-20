@@ -1,0 +1,178 @@
+Lab: Implement VLANs and Trunking
+Scenario
+Modern switches use VLANs to improve network performance by segmenting large Layer 2 broadcast domains into smaller ones. Trunks allow traffic from multiple VLANs to travel over a single link. This lab demonstrates how to configure VLANs and trunks between two switches.
+
+Prerequisites
+Ensure switches are erased and have no startup configurations. Contact your instructor if needed.
+
+Required Resources
+
+2 Cisco 2960 Switches (or comparable, Cisco IOS Release 15.2(2))
+2 PCs (with terminal emulation programs like Tera Term)
+Console cables and Ethernet cables
+Part 1: Build the Network and Configure Basic Device Settings
+Step 1: Cable the Network
+Connect devices as shown in the topology diagram.
+Use console cables to connect PCs to the switches for configuration.
+Step 2: Configure Basic Settings on Each Switch
+On both switches (S1 and S2):
+
+Console into the switch and enter privileged EXEC mode:
+shell
+Copy
+Edit
+Switch> enable
+Switch# configure terminal
+Assign a hostname:
+arduino
+Copy
+Edit
+S1(config)# hostname S1
+S2(config)# hostname S2
+Disable DNS lookup:
+arduino
+Copy
+Edit
+S1(config)# no ip domain-lookup
+S2(config)# no ip domain-lookup
+Set the privileged EXEC password to class:
+arduino
+Copy
+Edit
+S1(config)# enable secret class
+S2(config)# enable secret class
+Set the console password to cisco:
+arduino
+Copy
+Edit
+S1(config)# line console 0
+S1(config-line)# password cisco
+S1(config-line)# login
+S2(config)# line console 0
+S2(config-line)# password cisco
+S2(config-line)# login
+Set the VTY password to cisco:
+arduino
+Copy
+Edit
+S1(config)# line vty 0 15
+S1(config-line)# password cisco
+S1(config-line)# login
+S2(config)# line vty 0 15
+S2(config-line)# password cisco
+S2(config-line)# login
+Encrypt plaintext passwords:
+arduino
+Copy
+Edit
+S1(config)# service password-encryption
+S2(config)# service password-encryption
+Add a banner message:
+arduino
+Copy
+Edit
+S1(config)# banner motd $ Authorized Users Only! $
+S2(config)# banner motd $ Authorized Users Only! $
+Save the configuration:
+lua
+Copy
+Edit
+S1# copy running-config startup-config
+S2# copy running-config startup-config
+Step 3: Configure PC Hosts
+Assign IP addresses to PCs as per the addressing table in the topology.
+Part 2: Create VLANs and Assign Switch Ports
+Step 1: Create VLANs
+On both switches (S1 and S2):
+
+Create and name VLANs:
+
+scss
+Copy
+Edit
+S1(config)# vlan 10
+S1(config-vlan)# name Management
+S1(config)# vlan 20
+S1(config-vlan)# name Sales
+S1(config)# vlan 30
+S1(config-vlan)# name Operations
+S1(config)# vlan 999
+S1(config-vlan)# name ParkingLot
+S1(config)# vlan 1000
+S1(config-vlan)# name Native
+Configure management interfaces using the addressing table:
+
+arduino
+Copy
+Edit
+S1(config)# interface vlan 10
+S1(config-if)# ip address 192.168.10.11 255.255.255.0
+Step 2: Assign VLANs to Ports
+Assign unused ports to VLAN 999 and shut them down:
+
+arduino
+Copy
+Edit
+S1(config)# interface range f0/2-5, f0/7-24, g0/1-2
+S1(config-if-range)# switchport mode access
+S1(config-if-range)# switchport access vlan 999
+S1(config-if-range)# shutdown
+Assign used ports to VLANs:
+
+arduino
+Copy
+Edit
+S1(config)# interface f0/6
+S1(config-if)# switchport mode access
+S1(config-if)# switchport access vlan 20
+Verify VLAN configuration:
+
+arduino
+Copy
+Edit
+S1# show vlan brief
+Part 3: Configure 802.1Q Trunk Between Switches
+Step 1: Configure the Trunk
+On both switches (S1 and S2):
+
+Enable trunking on interface F0/1:
+arduino
+Copy
+Edit
+S1(config)# interface f0/1
+S1(config-if)# switchport mode trunk
+Set the native VLAN to 1000:
+arduino
+Copy
+Edit
+S1(config-if)# switchport trunk native vlan 1000
+Allow specific VLANs on the trunk:
+arduino
+Copy
+Edit
+S1(config-if)# switchport trunk allowed vlan 10,20,30,1000
+Step 2: Verify Trunk Configuration
+Verify trunking status:
+arduino
+Copy
+Edit
+S1# show interfaces trunk
+Questions & Answers
+What is the purpose of VLANs?
+VLANs improve network performance by segmenting broadcast domains, enhancing scalability, security, and management.
+
+Why are VLAN trunks necessary?
+VLAN trunks allow traffic from multiple VLANs to travel over a single link while preserving VLAN segmentation.
+
+What command verifies VLAN assignment?
+
+sql
+Copy
+Edit
+show vlan brief
+How do you check trunk configuration?
+
+sql
+Copy
+Edit
+show interfaces trunk

@@ -1,0 +1,188 @@
+Lab - Basic Switch Configuration
+Topology
+Devices: Cisco Catalyst 2960 Switch (S1), PC-A
+Connections: Ethernet LAN cabling and console cable
+Management VLAN: VLAN 99
+Addressing Table
+Device	Interface	IP Address/Prefix
+S1	VLAN 99	192.168.1.2 /24
+2001:db8:acad:1::2 /64
+PC-A	NIC	192.168.1.10 /24
+2001:db8:acad:1::10 /64
+Objectives
+Part 1: Cable the Network and Verify Default Switch Configuration.
+Part 2: Configure Basic Network Device Settings.
+Configure basic switch settings.
+Configure the PC IP address.
+Part 3: Verify and Test Network Connectivity.
+Display device configuration.
+Test end-to-end connectivity using ping.
+Test remote management using Telnet.
+Part 4: Manage the MAC Address Table.
+Record and set static MAC addresses.
+Step-by-Step Instructions
+Part 1: Cable the Network and Verify the Default Switch Configuration
+Device: Switch S1
+Connect to the switch:
+
+Use a console cable to connect PC-A to the console port of the switch.
+Use a terminal emulator (e.g., Tera Term) to access the switch.
+Why Console?
+
+A console connection is required initially because the switch lacks a configuration for Telnet or SSH.
+Verify default configuration:
+
+Enter Privileged EXEC Mode:
+bash
+Copy
+Edit
+Switch> enable
+Check the current running configuration:
+bash
+Copy
+Edit
+Switch# show running-config
+Erase any existing configuration (if needed):
+bash
+Copy
+Edit
+Switch# write erase
+Switch# reload
+Default settings questions:
+
+FastEthernet Interfaces: 24
+Gigabit Ethernet Interfaces: 2
+VTY Line Range: 0-15
+Check VLAN 1 details:
+
+Run:
+bash
+Copy
+Edit
+Switch# show int vlan 1
+Switch# show ip int vlan 1
+VLAN 1 IP Address: Not assigned.
+Interface Status: Administratively down.
+Connect Ethernet cable and check:
+
+Plug an Ethernet cable into port F0/6 on the switch.
+Verify interface details:
+bash
+Copy
+Edit
+Switch# show interface f0/6
+Interface Status: Up
+MAC Address: 0060.3e21.bb06
+Speed/Duplex: 100 Mbps Full-Duplex
+Default VLAN details:
+
+Check VLAN details:
+bash
+Copy
+Edit
+Switch# show vlan
+Default VLAN Name: default
+Ports in VLAN 1: All ports (F0/1-24, G0/1-2)
+VLAN Type: Ethernet
+Check flash memory:
+
+View the flash directory:
+bash
+Copy
+Edit
+Switch# show flash:
+IOS Image File: c2960-lanbasek9-mz.150-2.SE4.bin
+Part 2: Configure Basic Network Device Settings
+Device: Switch S1
+Enter global configuration mode and configure basic settings:
+
+bash
+Copy
+Edit
+Switch# configure terminal
+Switch(config)# no ip domain-lookup
+Switch(config)# hostname S1
+Switch(config)# service password-encryption
+Switch(config)# enable secret class
+Switch(config)# banner motd # Unauthorized access is strictly prohibited. #
+Set up SVI IP for VLAN 99:
+
+bash
+Copy
+Edit
+S1(config)# vlan 99
+S1(config-vlan)# exit
+S1(config)# interface vlan 99
+S1(config-if)# ip address 192.168.1.2 255.255.255.0
+S1(config-if)# ipv6 address 2001:db8:acad:1::2/64
+S1(config-if)# no shutdown
+S1(config-if)# exit
+Assign all ports to VLAN 99:
+
+bash
+Copy
+Edit
+S1(config)# interface range f0/1-24, g0/1-2
+S1(config-if-range)# switchport access vlan 99
+S1(config-if-range)# exit
+Device: PC-A
+Set IPv4 and IPv6 addresses:
+Open Network Settings on PC-A and configure the NIC:
+IPv4 Address: 192.168.1.10
+Subnet Mask: 255.255.255.0
+IPv6 Address: 2001:db8:acad:1::10/64
+Default Gateway: Not required for local tests.
+Part 3: Verify and Test Network Connectivity
+Display the configuration on the switch:
+
+bash
+Copy
+Edit
+S1# show running-config
+Test connectivity:
+
+From PC-A, test with ping:
+bash
+Copy
+Edit
+ping 192.168.1.2
+ping 2001:db8:acad:1::2
+Test remote management via Telnet:
+
+Enable Telnet on the switch:
+bash
+Copy
+Edit
+S1(config)# line vty 0 4
+S1(config-line)# password cisco
+S1(config-line)# login
+S1(config-line)# exit
+Connect via Telnet from PC-A:
+bash
+Copy
+Edit
+telnet 192.168.1.2
+Part 4: Manage the MAC Address Table
+Record MAC addresses:
+
+Display learned MAC addresses:
+bash
+Copy
+Edit
+S1# show mac address-table
+Set a static MAC address:
+
+bash
+Copy
+Edit
+S1(config)# mac address-table static 0001.1234.5678 vlan 99 interface f0/6
+Key Questions and Answers
+Why use a console connection initially?
+
+The switch has no default IP configuration; console access is required for the initial setup.
+Default VLAN 1 IP Address?
+
+Not assigned.
+What causes an interface to go up?
+
+Connecting a device or enabling the interface with no shutdown.

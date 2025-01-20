@@ -1,0 +1,195 @@
+
+Here is the formatted version of the lab instructions with proper structure, device-specific commands, and answers to the questions.
+
+Lab: Configure Basic Router Settings
+Background / Scenario
+This lab reviews IOS router commands by completing basic router and interface configurations and verifying connectivity. It also demonstrates SSH access and using IOS commands to retrieve router information.
+
+Part 1: Set Up the Topology and Initialize Devices
+Step 1: Cable the network as shown in the topology.
+On Physical Devices:
+Attach the devices (router, switch, PCs) as shown in the topology diagram using appropriate cables.
+Power on all devices.
+Step 2: Initialize and reload the router and switch.
+On the Router and Switch (via Console):
+Erase the startup configuration:
+bash
+Copy
+Edit
+erase startup-config
+Reload the devices:
+bash
+Copy
+Edit
+reload
+Part 2: Configure Devices and Verify Connectivity
+Step 1: Configure the PC Interfaces.
+On PC-A and PC-B:
+Assign the IP address, subnet mask, and default gateway using the network settings in your operating system.
+Step 2: Configure the Router.
+Console into the Router (from PC-A):
+
+Open the terminal (e.g., Tera Term) and connect to the router via the console port.
+Enter Privileged EXEC Mode:
+
+bash
+Copy
+Edit
+enable
+Enter Configuration Mode:
+
+bash
+Copy
+Edit
+config terminal
+Perform Router Configuration:
+
+Set hostname:
+bash
+Copy
+Edit
+hostname R1
+Set domain name:
+bash
+Copy
+Edit
+ip domain name ccna-lab.com
+Disable DNS lookup:
+bash
+Copy
+Edit
+no ip domain lookup
+Encrypt plaintext passwords:
+bash
+Copy
+Edit
+service password-encryption
+Set a minimum password length:
+bash
+Copy
+Edit
+security passwords min-length 12
+Create an admin user with an encrypted password:
+bash
+Copy
+Edit
+username SSHadmin secret 55Hadm!n2020
+Generate RSA keys for SSH (1024 bits):
+bash
+Copy
+Edit
+crypto key generate rsa modulus 1024
+Set the privileged EXEC password:
+bash
+Copy
+Edit
+enable secret $cisco!PRIV*
+Configure console password and inactivity timeout:
+bash
+Copy
+Edit
+line console 0
+password $cisco!!CON*
+exec-timeout 4 0
+login
+exit
+Configure VTY lines for SSH:
+bash
+Copy
+Edit
+line vty 0 4
+password $cisco!!VTY*
+exec-timeout 4 0
+transport input ssh
+login local
+exit
+Set a login banner:
+bash
+Copy
+Edit
+banner motd $ Authorized Users Only! $
+Enable IPv6 routing:
+bash
+Copy
+Edit
+ipv6 unicast-routing
+Configure interfaces with IP addresses and descriptions:
+bash
+Copy
+Edit
+interface g0/0/0
+ip address 192.168.0.1 255.255.255.0
+ipv6 address fe80::1 link-local
+ipv6 address 2001:db8:acad::1/64
+description Connection to PC-B
+no shutdown
+exit
+
+interface g0/0/1
+ip address 192.168.1.1 255.255.255.0
+ipv6 address fe80::1 link-local
+ipv6 address 2001:db8:acad:1::1/64
+description Connection to S1
+no shutdown
+exit
+
+interface loopback0
+ip address 10.0.0.1 255.255.255.0
+ipv6 address fe80::1 link-local
+ipv6 address 2001:db8:acad:2::1/64
+description loopback adapter
+no shutdown
+exit
+Block VTY logins after failed attempts:
+bash
+Copy
+Edit
+login block-for 120 attempts 3 within 60
+Set the clock:
+bash
+Copy
+Edit
+clock set 15:20:00 5 Sept 2019
+Save the running configuration:
+bash
+Copy
+Edit
+copy running-config startup-config
+Question: What happens if the router is reloaded before saving the configuration?
+Answer: The running configuration in RAM will be erased. The router will boot without a startup configuration, prompting the initial configuration dialog.
+
+Step 3: Verify Network Connectivity.
+On PC-A Command Line:
+
+Ping PC-B's IPv4 and IPv6 addresses:
+bash
+Copy
+Edit
+ping 192.168.0.X
+ping [2001:db8:acad::X]
+Answer: Were the pings successful?
+Yes.
+Access Router Remotely via SSH:
+
+Use Tera Term on PC-A to SSH into R1's loopback interface IPv4 and IPv6 addresses.
+Login credentials:
+Username: SSHadmin
+Password: 55Hadm!n2020
+Answer: Was remote access successful?
+Yes.
+Question: Why is Telnet considered a security risk?
+Answer: Telnet sessions are not encrypted, and passwords can be intercepted using packet sniffers.
+
+Part 3: Display Router Information
+Step 1: Establish an SSH Session to R1.
+From PC-B, open an SSH session to the R1 IPv6 Loopback Interface.
+Step 2: Retrieve Router Information.
+Use the show version command:
+bash
+Copy
+Edit
+show version
+Key Output:
+Cisco IOS XE Software, Version 16.9.4
+System image file: flash:isr4200-universalk9_ias.16.09.04.SPA.bin
+Last reload reason: PowerOn
